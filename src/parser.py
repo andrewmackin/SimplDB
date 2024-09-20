@@ -10,7 +10,7 @@ from ast_nodes import (
     SetClause,
 )
 
-# Precedence rules (if needed)
+# TODO: Precedence rules
 precedence = ()
 
 def p_statement(p):
