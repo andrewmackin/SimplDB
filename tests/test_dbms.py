@@ -30,6 +30,3 @@ class TestDatabase(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.data_dir, ignore_errors=True)
-
-if __name__ == '__main__':
-    unittest.main()

@@ -52,6 +52,3 @@ class TestSQLParser(unittest.TestCase):
         query = "SELECT FROM users"
         with self.assertRaises(SyntaxError):
             parser.parse(query)
-
-if __name__ == '__main__':
-    unittest.main()
