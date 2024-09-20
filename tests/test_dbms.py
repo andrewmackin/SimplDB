@@ -1,3 +1,4 @@
+import os
 import unittest
 import shutil
 from dbms import Database
@@ -6,6 +7,7 @@ class TestDatabase(unittest.TestCase):
     def setUp(self):
         self.data_dir = 'test_data'
         shutil.rmtree(self.data_dir, ignore_errors=True)
+        os.makedirs(self.data_dir, exist_ok=True)
         self.db = Database(data_dir=self.data_dir)
 
     def test_create_table(self):
