@@ -1,5 +1,3 @@
-# test_dbms.py
-
 import unittest
 import shutil
 from dbms import Database

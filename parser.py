@@ -1,5 +1,3 @@
-# parser.py
-
 import ply.yacc as yacc
 from lexer import tokens  # Import tokens from lexer
 from ast_nodes import (

@@ -1,5 +1,3 @@
-# lexer.py
-
 import ply.lex as lex
 
 # Reserved words
@@ -26,15 +24,15 @@ tokens = [
     'LPAREN',
     'RPAREN',
     'EQ',
-    'TIMES',  # Added 'TIMES' token
-] + list(reserved.values())  # Combine with reserved words
+    'TIMES',
+] + list(reserved.values())
 
 # Regular expression rules for simple tokens
 t_COMMA    = r','
 t_LPAREN   = r'\('
 t_RPAREN   = r'\)'
 t_EQ       = r'='
-t_TIMES    = r'\*'  # Define the 'TIMES' token
+t_TIMES    = r'\*'
 
 # Ignore spaces and tabs
 t_ignore = ' \t'
@@ -51,7 +49,7 @@ def t_STRING(t):
 
 def t_NUMBER(t):
     r'\d+'
-    t.value = int(t.value)  # Convert to integer
+    t.value = int(t.value)
     return t
 
 def t_newline(t):

@@ -1,5 +1,3 @@
-# test_duplicate_insertion.py
-
 import unittest
 import shutil
 import os
@@ -13,13 +11,10 @@ class TestDuplicateInsertion(unittest.TestCase):
         self.db = Database(data_dir=self.data_dir)
 
     def test_duplicate_insertion(self):
-        # Create table and insert initial record
         self.db.execute("CREATE TABLE users (id, name)")
         insert_result1 = self.db.execute("INSERT INTO users VALUES (1, 'Alice')")
-        # Attempt to insert duplicate key
         insert_result2 = self.db.execute("INSERT INTO users VALUES (1, 'Bob')")
 
-        # Fetch all records to verify the result
         result = self.db.execute("SELECT * FROM users")
         expected = [{'id': 1, 'name': 'Bob'}]
         self.assertEqual(result, expected, "Duplicate insertion test failed.")
