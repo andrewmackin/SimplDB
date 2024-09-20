@@ -23,7 +23,7 @@ class BTreeNode:
             self.keys.sort(key=lambda x: x[0])
             btree.node_manager.update_node(self)
         else:
-            # Find child to insert into
+            # Find the child to which the key should be added
             while i >= 0 and key < self.keys[i][0]:
                 i -= 1
             i += 1
@@ -39,23 +39,30 @@ class BTreeNode:
 
     def split_child(self, i, btree):
         t = btree.t
-        y = btree.node_manager.load_node(self.children[i])
-        z = BTreeNode(t, y.leaf)
-        # Transfer the last t-1 keys from y to z
+        y_id = self.children[i]
+        y = btree.node_manager.load_node(y_id)
+        z = BTreeNode(t, leaf=y.leaf)
+
+        # z gets y's keys from index t onwards
         z.keys = y.keys[t:]
-        y.keys = y.keys[:t - 1]
+        y.keys = y.keys[:t]
+
         if not y.leaf:
             z.children = y.children[t:]
             y.children = y.children[:t]
-        # Save the split nodes
+
+        # Insert z into self.children
         z_id = btree.node_manager.save_node(z)
-        y_id = y.node_id
-        # Insert new child into self.children
         self.children.insert(i + 1, z_id)
-        # Move the median key up to the parent
+
+        # Move y's last key up to self.keys
         self.keys.insert(i, y.keys.pop(-1))
-        # Save the parent node
+
+        # Save the updated nodes
+        btree.node_manager.update_node(y)
         btree.node_manager.update_node(self)
+        btree.node_manager.update_node(z)
+
 
     def delete_key(self, key):
         # TODO: Implement B-Tree Deletion Alg
@@ -74,16 +81,31 @@ class BTreeNode:
             child.traverse(btree, results)
         return results
 
-    def search(self, k, btree):
+    def search(self, key, btree):
         i = 0
-        while i < len(self.keys) and k > self.keys[i][0]:
+        while i < len(self.keys) and key > self.keys[i][0]:
             i += 1
-        if i < len(self.keys) and self.keys[i][0] == k:
+        if i < len(self.keys) and self.keys[i][0] == key:
             return self.keys[i][1]
         if self.leaf:
             return None
-        child = btree.node_manager.load_node(self.children[i])
-        return child.search(k, btree)
+        else:
+            child = btree.node_manager.load_node(self.children[i])
+            return child.search(key, btree)
+    
+    def to_string(self, btree, level=0):
+        indent = '  ' * level
+        keys_str = ', '.join([str(key) for key, _ in self.keys])
+        result = f'{indent}Node(ID={self.node_id}, Keys=[{keys_str}], Leaf={self.leaf})\n'
+        if not self.leaf:
+            for child_id in self.children:
+                child = btree.node_manager.load_node(child_id)
+                result += child.to_string(btree, level + 1)
+        return result
+    
+    def __str__(self):
+        return f"{self.t = }; {self.leaf = }; {self.keys = }; {self.children = }; {self.node_id = }"
+
 
 class BTree:
     def __init__(self, t=3, storage_path='data/btree'):
@@ -117,9 +139,8 @@ class BTree:
             new_root = BTreeNode(self.t, leaf=False)
             new_root.children.append(root.node_id)
             new_root.split_child(0, self)
-            self.root_id = new_root.node_id
-            self.node_manager.update_node(new_root)
-            self._save_metadata()  # Save updated root_id
+            self.root_id = self.node_manager.save_node(new_root)
+            self._save_metadata()
             new_root.insert_non_full(key, value, self)
         else:
             root.insert_non_full(key, value, self)
@@ -130,6 +151,7 @@ class BTree:
 
     def search(self, key):
         root = self.node_manager.load_node(self.root_id)
+        print(f"{str(root) = }")
         return root.search(key, self)
 
     def delete(self, key):
@@ -153,3 +175,7 @@ class BTree:
                 if self._delete_recursive(child_node, key):
                     return True
             return False
+
+    def __str__(self):
+        root = self.node_manager.load_node(self.root_id)
+        return root.to_string(self)

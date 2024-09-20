@@ -85,7 +85,6 @@ class Database:
         btree.insert(key, row)
         return f"1 row inserted into {table_name}."
 
-
     def select_from(self, stmt):
         table_name = stmt.table_name
         columns = stmt.columns
@@ -113,15 +112,23 @@ class Database:
             raise ValueError(f"Table {table_name} does not exist.")
         btree = self.get_btree(table_name)
         updated_rows = 0
-        all_records = btree.traverse()
+        # Parse where_clause value
         where_value = self.parse_value(where_clause.value)
         set_value = self.parse_value(set_clause.value)
-        for key, row in all_records:
-            row_value = row[where_clause.column]
-            if row_value == where_value:
-                row[set_clause.column] = set_value
-                btree.insert(key, row)  # Update the record
-                updated_rows += 1
+        def update_node(node):
+            nonlocal updated_rows  # Add this line
+            for idx, (key, row) in enumerate(node.keys):
+                if row.get(where_clause.column) == where_value:
+                    row[set_clause.column] = set_value
+                    node.keys[idx] = (key, row)
+                    updated_rows += 1
+            btree.node_manager.update_node(node)
+            if not node.leaf:
+                for child_id in node.children:
+                    child = btree.node_manager.load_node(child_id)
+                    update_node(child)
+        root = btree.node_manager.load_node(btree.root_id)
+        update_node(root)
         return f"{updated_rows} rows updated in {table_name}."
 
     def delete_from(self, stmt):
