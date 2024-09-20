@@ -152,22 +152,22 @@ class TestBTree(unittest.TestCase):
         records = self.btree.traverse()
         self.assertEqual(records, [], "Tree should remain empty after attempting to delete from an empty tree.")
 
-    # def test_insert_large_number_of_keys(self):
-    #     """Test B-tree with a large number of keys."""
-    #     # Insert a large number of keys
-    #     num_keys = 1000
-    #     for key in range(num_keys):
-    #         self.btree.insert(key, f"value{key}")
+    def test_insert_large_number_of_keys(self):
+        """Test B-tree with a large number of keys."""
+        # Insert a large number of keys
+        num_keys = 1000
+        for key in range(num_keys):
+            self.btree.insert(key, f"value{key}")
 
-    #     # Verify that all keys are present
-    #     for key in range(num_keys):
-    #         result = self.btree.search(key)
-    #         self.assertEqual(result, f"value{key}", f"Key {key} should have value 'value{key}'.")
+        # Verify that all keys are present
+        for key in range(num_keys):
+            result = self.btree.search(key)
+            self.assertEqual(result, f"value{key}", f"Key {key} should have value 'value{key}'.")
 
     def test_split_root(self):
         """Test that the root node splits correctly when full."""
         # Insert keys to fill the root node and cause a split
-        keys = [1, 2, 3, 4, 5]
+        keys = list(range(6))
         for key in keys:
             self.btree.insert(key, f"value{key}")
 
