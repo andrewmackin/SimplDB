@@ -25,8 +25,8 @@ class TestDatabase(unittest.TestCase):
         self.db.execute("INSERT INTO users VALUES (2, 'Bob')")
         result = self.db.execute("SELECT * FROM users")
         expected = [
-            {'id': '1', 'name': 'Alice'},
-            {'id': '2', 'name': 'Bob'}
+            {'id': 1, 'name': 'Alice'},
+            {'id': 2, 'name': 'Bob'}
         ]
         self.assertEqual(result, expected)
 

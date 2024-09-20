@@ -1,81 +1,92 @@
 # parser.py
 
-from ast_nodes import CreateTableStatement, InsertStatement, SelectStatement
+import ply.yacc as yacc
+from lexer import tokens  # Import tokens from lexer
+from ast_nodes import (
+    CreateTableStatement,
+    InsertStatement,
+    SelectStatement,
+    UpdateStatement,
+    DeleteStatement,
+    WhereClause,
+    SetClause,
+)
 
-class SQLParser:
-    def parse(self, query):
-        tokens = self.tokenize(query)
-        if not tokens:
-            raise ValueError("Empty query")
-        command = tokens[0].upper()
-        if command == 'CREATE':
-            return self.parse_create_table(tokens)
-        elif command == 'INSERT':
-            return self.parse_insert_into(tokens)
-        elif command == 'SELECT':
-            return self.parse_select(tokens)
-        else:
-            raise ValueError(f"Unknown command: {command}")
+# Precedence rules (if needed)
+precedence = ()
 
-    def tokenize(self, query):
-        # Simple tokenizer; for a full SQL parser, use a lexer/parser generator
-        tokens = []
-        token = ''
-        in_string = False
-        for char in query:
-            if char == "'" and not in_string:
-                in_string = True
-                if token:
-                    tokens.append(token)
-                    token = ''
-                token += char
-            elif char == "'" and in_string:
-                in_string = False
-                token += char
-                tokens.append(token)
-                token = ''
-            elif in_string:
-                token += char
-            elif char in ' (),':
-                if token:
-                    tokens.append(token)
-                    token = ''
-                if char.strip():
-                    tokens.append(char)
-            else:
-                token += char
-        if token:
-            tokens.append(token)
-        return tokens
+def p_statement(p):
+    '''statement : create_table_statement
+                 | insert_statement
+                 | select_statement
+                 | update_statement
+                 | delete_statement'''
+    p[0] = p[1]
 
-    def parse_create_table(self, tokens):
-        if tokens[1].upper() != 'TABLE':
-            raise ValueError("Expected TABLE keyword after CREATE")
-        table_name = tokens[2]
-        if tokens[3] != '(' or tokens[-1] != ')':
-            raise ValueError("Expected parentheses around column definitions")
-        columns = tokens[4:-1]
-        columns = [col for col in columns if col != ',']
-        return CreateTableStatement(table_name, columns)
+def p_create_table_statement(p):
+    'create_table_statement : CREATE TABLE IDENTIFIER LPAREN column_list RPAREN'
+    p[0] = CreateTableStatement(table_name=p[3], columns=p[5])
 
-    def parse_insert_into(self, tokens):
-        if tokens[1].upper() != 'INTO':
-            raise ValueError("Expected INTO keyword after INSERT")
-        table_name = tokens[2]
-        if 'VALUES' not in tokens:
-            raise ValueError("Expected VALUES keyword in INSERT statement")
-        values_index = tokens.index('VALUES')
-        if tokens[values_index + 1] != '(' or tokens[-1] != ')':
-            raise ValueError("Expected parentheses around VALUES")
-        values = tokens[values_index + 2:-1]
-        values = [val.strip("'") for val in values if val != ',']
-        return InsertStatement(table_name, values)
+def p_column_list(p):
+    '''column_list : column_list COMMA IDENTIFIER
+                   | IDENTIFIER'''
+    if len(p) == 4:
+        p[0] = p[1] + [p[3]]
+    else:
+        p[0] = [p[1]]
 
-    def parse_select(self, tokens):
-        if 'FROM' not in tokens:
-            raise ValueError("Expected FROM keyword in SELECT statement")
-        from_index = tokens.index('FROM')
-        columns = tokens[1:from_index]
-        columns = [col for col in columns if col != ',']
-        table_name = tokens[from_index + 1]
-        return SelectStatement(columns, table_name)
+def p_insert_statement(p):
+    'insert_statement : INSERT INTO IDENTIFIER VALUES LPAREN value_list RPAREN'
+    p[0] = InsertStatement(table_name=p[3], values=p[6])
+
+def p_value_list(p):
+    '''value_list : value_list COMMA value
+                  | value'''
+    if len(p) == 4:
+        p[0] = p[1] + [p[3]]
+    else:
+        p[0] = [p[1]]
+
+def p_value(p):
+    '''value : STRING
+             | NUMBER'''
+    p[0] = p[1]
+
+def p_select_statement(p):
+    'select_statement : SELECT select_list FROM IDENTIFIER'
+    p[0] = SelectStatement(columns=p[2], table_name=p[4])
+
+def p_select_list(p):
+    '''select_list : select_list COMMA IDENTIFIER
+                   | IDENTIFIER
+                   | TIMES'''
+    if len(p) == 4:
+        p[0] = p[1] + [p[3]]
+    elif p[1] == '*':
+        p[0] = ['*']
+    else:
+        p[0] = [p[1]]
+
+def p_update_statement(p):
+    'update_statement : UPDATE IDENTIFIER SET set_clause where_clause'
+    p[0] = UpdateStatement(table_name=p[2], set_clause=p[4], where_clause=p[5])
+
+def p_set_clause(p):
+    'set_clause : IDENTIFIER EQ value'
+    p[0] = SetClause(column=p[1], value=p[3])
+
+def p_delete_statement(p):
+    'delete_statement : DELETE FROM IDENTIFIER where_clause'
+    p[0] = DeleteStatement(table_name=p[3], where_clause=p[4])
+
+def p_where_clause(p):
+    'where_clause : WHERE IDENTIFIER EQ value'
+    p[0] = WhereClause(column=p[2], value=p[4])
+
+def p_error(p):
+    if p:
+        raise SyntaxError(f"Syntax error at '{p.value}'")
+    else:
+        raise SyntaxError("Syntax error at EOF")
+
+parser = yacc.yacc()
