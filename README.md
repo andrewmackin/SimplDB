@@ -34,6 +34,20 @@ SimplDB leverages [PLY](https://ply.readthedocs.io/en/latest/index.html) for lex
     pip install pytest
     ```
 
+### Interacting with the DBMS
+1. **Run the DB server**
+
+    ```bash
+    cd src
+    uvicorn server:app --reload
+    ```
+
+2. **Run the SQL client**
+
+    ```bash
+    python src/client.py
+    ```
+
 ### Running Tests
 1. **Run PyTest**
 
