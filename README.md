@@ -27,11 +27,10 @@ SimplDB leverages [PLY](https://ply.readthedocs.io/en/latest/index.html) for lex
     source .venv/bin/activate
     ```
 
-3. **Install dependencies (to be moved to requirements.txt)**
+3. **Install dependencies**
 
     ```bash
-    pip install ply==3.11
-    pip install pytest
+    pip install -r requirements.txt
     ```
 
 ### Interacting with the DBMS
