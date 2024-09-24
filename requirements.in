@@ -1,0 +1,7 @@
+ply
+requests
+fastapi
+uvicorn
+pytest
+httpx
+pytest-asyncio
