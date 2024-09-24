@@ -1,5 +1,6 @@
 import pickle
 import os
+import math
 from node_manager import NodeManager
 
 class BTreeNode:
@@ -11,6 +12,10 @@ class BTreeNode:
         self.node_id = node_id # Unique identifier for disk storage
 
     def insert_non_full(self, key, value, btree):
+        assert len(self.children) <= self.t * 2 - 1
+        assert self.node_id == btree.root_id or self.leaf or len(self.children) >= math.ceil(self.t / 2)
+        assert self.node_id != btree.root_id or self.leaf or len(self.children) >= 2
+        assert self.leaf or len(self.keys) == len(self.children) - 1
         i = len(self.keys) - 1
         if self.leaf:
             # Check for existing key and update
@@ -38,6 +43,10 @@ class BTreeNode:
             child.insert_non_full(key, value, btree)
 
     def split_child(self, i, btree):
+        # assert len(self.children) <= self.t * 2 - 1
+        # assert self.node_id == btree.root_id or self.leaf or len(self.children) >= math.ceil(self.t / 2)
+        # assert self.node_id != btree.root_id or self.leaf or len(self.children) >= 2
+        # assert self.leaf or len(self.keys) == len(self.children) - 1
         t = btree.t
         y_id = self.children[i]
         y = btree.node_manager.load_node(y_id)
@@ -69,6 +78,10 @@ class BTreeNode:
         pass
 
     def traverse(self, btree, results=None):
+        assert len(self.children) <= self.t * 2 - 1
+        assert self.node_id == btree.root_id or self.leaf or len(self.children) >= math.ceil(self.t / 2)
+        assert self.node_id != btree.root_id or self.leaf or len(self.children) >= 2
+        assert self.leaf or len(self.keys) == len(self.children) - 1
         if results is None:
             results = []
         for i in range(len(self.keys)):
@@ -82,6 +95,10 @@ class BTreeNode:
         return results
 
     def search(self, key, btree):
+        assert len(self.children) <= self.t * 2 - 1, f"{len(self.children ) = }"
+        assert self.node_id == btree.root_id or self.leaf or len(self.children) >= math.ceil(self.t / 2)
+        assert self.node_id != btree.root_id or self.leaf or len(self.children) >= 2
+        assert self.leaf or len(self.keys) == len(self.children) - 1
         i = 0
         while i < len(self.keys) and key > self.keys[i][0]:
             i += 1
