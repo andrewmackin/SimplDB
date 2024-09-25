@@ -118,10 +118,6 @@ class BTree:
             self.root_id = self.node_manager.save_node(root)
             self._save_metadata()
 
-    def _save_metadata(self):
-        with open(self.metadata_file, 'wb') as f:
-            pickle.dump({'root_id': self.root_id}, f)
-
     def insert(self, key, value):
         root = self.node_manager.load_node(self.root_id)
         if len(root.keys) == (2 * self.t - 1): # TODO: sometimes len(keys) still exceeds this
@@ -134,14 +130,6 @@ class BTree:
         else:
             root.insert_non_full(key, value, self)
 
-    def traverse(self):
-        root = self.node_manager.load_node(self.root_id)
-        return root.traverse(self)
-
-    def search(self, key):
-        root = self.node_manager.load_node(self.root_id)
-        return root.search(key, self)
-
     def delete(self, key):
         root = self.node_manager.load_node(self.root_id)
         self._delete_recursive(root, key)
@@ -150,7 +138,19 @@ class BTree:
             self.root_id = root.children[0]
             self.node_manager.update_node(root) 
             self.node_manager.delete_node(root.node_id)
-            self._save_metadata() 
+            self._save_metadata()
+
+    def search(self, key):
+        root = self.node_manager.load_node(self.root_id)
+        return root.search(key, self)
+
+    def traverse(self):
+        root = self.node_manager.load_node(self.root_id)
+        return root.traverse(self)
+
+    def _save_metadata(self):
+        with open(self.metadata_file, 'wb') as f:
+            pickle.dump({'root_id': self.root_id}, f)
 
     def _delete_recursive(self, node, key):
         for i, (k, _) in enumerate(node.keys):
@@ -162,7 +162,7 @@ class BTree:
                     if node.leaf:
                         return True
                     else:
-                        self.promote_child(node, 0)
+                        self._promote_child(node, 0)
                         return True
                 return True
 
@@ -175,7 +175,7 @@ class BTree:
                 child_node = self.node_manager.load_node(child_id)
                 if self._delete_recursive(child_node, key):
                     if len(child_node.keys) == 0:
-                        self.promote_child(node, i)
+                        self._promote_child(node, i)
                     return True
                 break
         else:
@@ -183,12 +183,12 @@ class BTree:
             child_node = self.node_manager.load_node(child_id)
             if self._delete_recursive(child_node, key):
                 if len(child_node.keys) == 0:
-                    self.promote_child(node, len(node.keys))
+                    self._promote_child(node, len(node.keys))
                 return True
 
         return False
 
-    def promote_child(self, node, index):
+    def _promote_child(self, node, index):
         if index < len(node.children):
             child_id = node.children[index]
             child_node = self.node_manager.load_node(child_id)
