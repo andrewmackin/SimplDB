@@ -22,7 +22,6 @@ class Database:
             self.tables = {}
             with open(self.tables_meta, 'wb') as f:
                 pickle.dump(self.tables, f)
-        # Cache btree instances
         self.btrees = {}
 
     def execute(self, query):
@@ -46,16 +45,17 @@ class Database:
     def create_table(self, stmt):
         table_name = stmt.table_name
         columns = stmt.columns
+
         if table_name in self.tables:
             raise ValueError(f"Table {table_name} already exists.")
-        # Initialize BTree for the table
+
         storage_path = os.path.join(self.data_dir, table_name)
         BTree(t=3, storage_path=storage_path)
         self.tables[table_name] = {
             'columns': columns,
             'btree_path': storage_path
         }
-        # Save metadata
+
         with open(self.tables_meta, 'wb') as f:
             pickle.dump(self.tables, f)
         return f"Table {table_name} created."
@@ -77,9 +77,9 @@ class Database:
             raise ValueError(f"Table {table_name} does not exist.")
         if len(values) != len(table['columns']):
             raise ValueError("Column count doesn't match value count")
-        # Parse values to appropriate data types
+
         parsed_values = [self.parse_value(val) for val in values]
-        key = parsed_values[0]  # Assuming first column is the primary key
+        key = parsed_values[0]
         row = dict(zip(table['columns'], parsed_values))
         btree = self.get_btree(table_name)
         btree.insert(key, row)
@@ -112,11 +112,10 @@ class Database:
             raise ValueError(f"Table {table_name} does not exist.")
         btree = self.get_btree(table_name)
         updated_rows = 0
-        # Parse where_clause value
         where_value = self.parse_value(where_clause.value)
         set_value = self.parse_value(set_clause.value)
         def update_node(node):
-            nonlocal updated_rows  # Add this line
+            nonlocal updated_rows
             for idx, (key, row) in enumerate(node.keys):
                 if row.get(where_clause.column) == where_value:
                     row[set_clause.column] = set_value
@@ -141,7 +140,6 @@ class Database:
         deleted_rows = 0
         keys_to_delete = []
         all_records = btree.traverse()
-        # Parse where_clause value
         where_value = self.parse_value(where_clause.value)
 
         for key, row in all_records:
@@ -163,7 +161,7 @@ class Database:
         try:
             return float(value)
         except ValueError:
-            return value  # Return as string if it cannot be converted
+            return value
 
     def save_table_meta(self, table_name):
         table = self.tables.get(table_name)
