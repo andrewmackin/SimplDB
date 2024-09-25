@@ -35,3 +35,11 @@ class NodeManager:
         filepath = os.path.join(self.storage_path, f"{node.node_id}.node")
         with open(filepath, 'wb') as f:
             pickle.dump(node, f)
+
+    def delete_node(self, node_id):
+        """Deletes the node file from disk."""
+        filepath = os.path.join(self.storage_path, f"{node_id}.node")
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        else:
+            raise FileNotFoundError(f"Node file {filepath} does not exist.")
