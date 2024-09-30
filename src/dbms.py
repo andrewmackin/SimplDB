@@ -102,7 +102,6 @@ class Database:
                 selected.append(selected_record)
             return selected
 
-
     def update_table(self, stmt):
         table_name = stmt.table_name
         set_clause = stmt.set_clause
@@ -150,7 +149,6 @@ class Database:
             btree.delete(key)
             deleted_rows += 1
         return f"{deleted_rows} rows deleted from {table_name}."
-
 
     def parse_value(self, value):
         if isinstance(value, (int, float)):
