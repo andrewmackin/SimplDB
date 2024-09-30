@@ -7,7 +7,7 @@ from node_manager import NodeManager
 class TestBTree(unittest.TestCase):
 
     def setUp(self):
-        self.storage_path = 'test_data_btree'
+        self.storage_path = 'data'
         shutil.rmtree(self.storage_path, ignore_errors=True)
         os.makedirs(self.storage_path, exist_ok=True)
         self.btree = BTree(t=3, storage_path=self.storage_path)
@@ -129,6 +129,14 @@ class TestBTree(unittest.TestCase):
         self.btree.delete(10)
         records = self.btree.traverse()
         self.assertEqual(records, [], "Tree should remain empty after attempting to delete from an empty tree.")
+
+    def test_delete_single_value(self):
+        self.btree.insert(5, "value5")
+
+        self.btree.delete(5)
+        self.assertIsNone(self.btree.search(5), "Deleted key should not be found in B-tree")
+        records = self.btree.traverse()
+        self.assertEqual(records, [], "B-tree traversal does not match expected data after deleting key with children.")
 
     def test_insert_large_number_of_keys(self):
         """Test B-tree with a large number of keys."""
