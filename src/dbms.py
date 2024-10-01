@@ -127,7 +127,7 @@ class Database:
                     update_node(child)
         root = btree.node_manager.load_node(btree.root_id)
         update_node(root)
-        return f"{updated_rows} rows updated in {table_name}."
+        return f"{updated_rows} row{(updated_rows > 1) * 's'} updated in {table_name}."
 
     def delete_from(self, stmt):
         table_name = stmt.table_name
@@ -148,7 +148,7 @@ class Database:
         for key in keys_to_delete:
             btree.delete(key)
             deleted_rows += 1
-        return f"{deleted_rows} rows deleted from {table_name}."
+        return f"{deleted_rows} row{(deleted_rows > 1) * 's'} deleted from {table_name}."
 
     def parse_value(self, value):
         if isinstance(value, (int, float)):
