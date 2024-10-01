@@ -59,6 +59,28 @@ class TestDatabase(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.db.execute("SELECT * FROM users")
 
+    def test_update_one_row(self):
+        self.db.execute("CREATE TABLE users (id, name)")
+        self.db.execute("INSERT INTO users VALUES (1, 'Alice')")
+        self.db.execute("INSERT INTO users VALUES (2, 'Bob')")
+
+        result = self.db.execute("UPDATE users SET name='Charlie' WHERE id=2")
+
+        self.assertEqual(result, "1 row updated in users.", "Update persistence test failed.")
+
+    def test_update_multiple_rows(self):
+        self.db.execute("CREATE TABLE users (id, name)")
+        self.db.execute("INSERT INTO users VALUES (1, 'Alice')")
+        self.db.execute("INSERT INTO users VALUES (2, 'Alice')")
+
+        result = self.db.execute("UPDATE users SET name='Charlie' WHERE name='Alice'")
+
+        self.assertEqual(result, "2 rows updated in users.", "Update persistence test failed.")
+
+    def test_update_unknown_table(self):
+        with self.assertRaises(ValueError):
+            self.db.execute("UPDATE users SET name='Charlie' WHERE name='Alice'")
+
     def test_invalid_syntax(self):
         result = self.db.execute("syntax error")
         self.assertIn("syntax error", result.lower())
